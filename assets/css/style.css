@@ -466,4 +466,13 @@ footer {
   .hero {
     min-height: auto;
   }
+
+  .submit-btn{
+    margin-top: 10px;
+  }
+
+  .form-card {
+    min-height: 1020px;
+    height: auto;
+  }
 }
