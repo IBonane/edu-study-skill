@@ -1,0 +1,120 @@
+const SPREADSHEET_ID = "";
+
+function doGet(e) {
+  return ContentService
+    .createTextOutput(JSON.stringify({
+      ok: true,
+      message: "Web app active"
+    }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function normalize(value) {
+  return (value || "").toString().trim().toLowerCase();
+}
+
+function normalizePhone(value) {
+  return (value || "").toString().replace(/\s+/g, "").trim();
+}
+
+function isDuplicate(sheet, email, telephone, emailColIndex, telColIndex) {
+  const values = sheet.getDataRange().getValues();
+  const emailNorm = normalize(email);
+  const telNorm = normalizePhone(telephone);
+
+  for (let i = 1; i < values.length; i++) {
+    const existingEmail = normalize(values[i][emailColIndex]);
+    const existingTel = normalizePhone(values[i][telColIndex]);
+
+    if (existingEmail === emailNorm && existingTel === telNorm) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function doPost(e) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const data = e.parameter || {};
+    const formType = normalize(data.formType);
+
+    if (formType === "jeune") {
+      const sheet = ss.getSheetByName("jeunes");
+      if (!sheet) throw new Error("Onglet 'jeunes' introuvable");
+
+      if (isDuplicate(sheet, data.email, data.telephone, 2, 3)) {
+        return ContentService
+          .createTextOutput(JSON.stringify({
+            ok: false,
+            duplicate: true,
+            message: "Déjà inscrit"
+          }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+
+      sheet.appendRow([
+        new Date(),
+        data.nom || "",
+        data.email || "",
+        data.telephone || "",
+        data.ville || "",
+        data.niveau || "",
+        data.talent || "",
+        data.motivation || ""
+      ]);
+    } else if (formType === "entreprise") {
+      const sheet = ss.getSheetByName("entreprises");
+      if (!sheet) throw new Error("Onglet 'entreprises' introuvable");
+
+      if (isDuplicate(sheet, data.email, data.telephone, 3, 4)) {
+        return ContentService
+          .createTextOutput(JSON.stringify({
+            ok: false,
+            duplicate: true,
+            message: "Déjà inscrit"
+          }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+
+      sheet.appendRow([
+        new Date(),
+        data.entreprise || "",
+        data.contact || "",
+        data.email || "",
+        data.telephone || "",
+        data.secteur || "",
+        data.contribution || "",
+        data.message || ""
+      ]);
+    } else if (formType === "contact") {
+      const sheet = ss.getSheetByName("contacts");
+      if (!sheet) throw new Error("Onglet 'contacts' introuvable");
+
+      sheet.appendRow([
+        new Date(),
+        data.nom || "",
+        data.email || "",
+        data.message || ""
+      ]);
+    } else {
+      throw new Error("formType invalide ou manquant");
+    }
+
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        ok: true,
+        message: "Enregistré avec succès"
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        ok: false,
+        error: String(error)
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
