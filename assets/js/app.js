@@ -4,6 +4,21 @@ const switchButtons = document.querySelectorAll(".switch-btn");
 const formSections = document.querySelectorAll(".form-card");
 const heroEntrepriseBtn = document.getElementById("heroEntrepriseBtn");
 
+const menuToggle = document.getElementById("menuToggle");
+const mobileMenu = document.getElementById("mobileMenu");
+
+if (menuToggle && mobileMenu) {
+  menuToggle.addEventListener("click", () => {
+    mobileMenu.classList.toggle("active");
+  });
+
+  mobileMenu.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => {
+      mobileMenu.classList.remove("active");
+    });
+  });
+}
+
 function setForm(formName) {
   const targetId = formName === "entreprise" ? "entrepriseForm" : "jeuneForm";
 
